@@ -44,6 +44,7 @@ char *aisa = "A_is_a_";
 int x = 0;
 ```
 
+
 # Question 1
 In a department, there was a new lab admin who had nothing to do, his name was Sin.
 Sin just became an admin exactly 1 month ago. After a month in that lab he finally met
@@ -65,6 +66,36 @@ e. Encoding method is also applied to all other directories inside the encoded
 directory.(rekursif)
 
 ** **
+
+**Screenshots**
+**a.)**
+
+![Kondisi_1](https://user-images.githubusercontent.com/61174498/121777602-2bdb9380-cbbd-11eb-9f62-91b20dd9c523.png)
+
+![Screenshot from 2021-06-12 14-55-44](https://user-images.githubusercontent.com/61174498/121777622-3d24a000-cbbd-11eb-8c52-4eaa736c1b02.png)
+
+**b.)**
+
+![Screenshot from 2021-06-12 14-57-44](https://user-images.githubusercontent.com/61174498/121777626-457cdb00-cbbd-11eb-891f-8a88826ed12a.png)
+
+![Screenshot from 2021-06-12 14-57-52](https://user-images.githubusercontent.com/61174498/121777651-6a714e00-cbbd-11eb-85a5-25a53005b0fd.png)
+
+![Screenshot from 2021-06-12 14-58-21](https://user-images.githubusercontent.com/61174498/121777655-70ffc580-cbbd-11eb-9287-920d4a561ce4.png)
+
+**c.)**
+
+![Screenshot from 2021-06-12 14-58-48](https://user-images.githubusercontent.com/61174498/121777666-7c52f100-cbbd-11eb-8d77-365e39111509.png)
+
+![Screenshot from 2021-06-12 14-59-08](https://user-images.githubusercontent.com/61174498/121777667-82e16880-cbbd-11eb-8751-10b526e516ea.png)
+
+
+**d.)**
+
+![Screenshot from 2021-06-12 15-24-25](https://user-images.githubusercontent.com/61174498/121777714-b58b6100-cbbd-11eb-9a36-f7de1c2fc790.png)
+
+**e.)**
+
+![Screenshot from 2021-06-12 14-59-45](https://user-images.githubusercontent.com/61174498/121777687-942a7500-cbbd-11eb-91f6-78e85db42921.png)
 
 # Question 2
 Other than that, Sei proposed to create additional encryption methods to increase the
@@ -92,6 +123,8 @@ Suatu_File.txt.0002
 When accessed via the file system, file will appear as Suatu_File.txt
 ** **
 
+**Screenshots**
+
 # Question 3
 Because Sin still feels exceptionally empty, he finally adds another feature to their file system.
 a. If a directory is created with the prefix ```A_is_a_```, it will become a special directory.
@@ -104,7 +137,7 @@ of a decimal value from the binary value that comes from the difference in chara
 For example, if in the original directory the filename is ```FiLe_CoNtoH.txt``` then in the fuse it will be ```file_contoh.txt.1321```. 1321 comes from binary 10100101001.
 
 # Solution 3
-**a.)**
+**In the ```RENAME``` utility functions, it is checked whether the directory is renamed by adding ```A_is_a_``` or removing ```A_is_a_``` with the strstr() function.**
 ```
 static int xmp_rename(const char *from, const char *to)
 {
@@ -136,10 +169,78 @@ static int xmp_rename(const char *from, const char *to)
 	return 0;
 }
 ```
-** **
+**If A_is_a_ is detected in the destination path, it means the directory was renamed by adding A_is_a_. Then proceed with changing the file name to lowercase and adding the decimal value as a new extension to the encryptBinary function.**
+
+```
+void getBinary(char *fname, char *bin, char *lowercase){
+	int endid = ext_id(fname);
+	int startid = slash_id(fname, 0);
+	int i;
+	
+	for(i=startid; i<endid; i++){
+		if(isupper(fname[i])){
+			bin[i] = '1';
+			lowercase[i] = fname[i] + 32;
+		}
+		else{
+			bin[i] = '0';
+			lowercase[i] = fname[i];
+		}
+	}
+	bin[endid] = '\0';
+	
+	for(; i<strlen(fname); i++){
+		lowercase[i] = fname[i];
+	}
+	lowercase[i] = '\0';
+}
 ```
 
 ```
+int bin_to_dec(char *bin){
+	int tmp = 1, res = 0;
+	for(int i=strlen(bin)-1; i>=0; i--){
+		if(bin[i] == '1') res += tmp;
+		tmp *= 2;
+	}
+	return res;
+}
+```
+
+```
+void encryptBinary(char *fpath)
+{
+	chdir(fpath);
+	DIR *dp;
+	struct dirent *dir;
+	struct stat lol;
+	dp = opendir(".");
+	if(dp == NULL) return;
+	
+	char dirPath[1000];
+	char filePath[1000];
+	char filePathBinary[1000];
+	
+	while ((dir = readdir(dp)) != NULL){
+		if (stat(dir->d_name, &lol) < 0);
+		else if (S_ISDIR(lol.st_mode)){
+			if (strcmp(dir->d_name,".") == 0 || strcmp(dir->d_name,"..") == 0) continue;
+			sprintf(dirPath,"%s/%s",fpath, dir->d_name);
+			encryptBinary(dirPath);
+		}
+		else{
+			sprintf(filePath,"%s/%s",fpath, dir->d_name);
+			char bin[1000], lowercase[1000];
+			getBinary(dir->d_name, bin, lowercase);
+			int dec = bin_to_dec(bin);
+			sprintf(filePathBinary,"%s/%s.%d",fpath,lowercase,dec);
+			rename(filePath, filePathBinary);
+		}
+	}
+	closedir(dp);
+}
+```
+
 ** **
 ```
 
