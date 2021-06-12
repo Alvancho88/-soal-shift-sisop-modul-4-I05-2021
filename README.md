@@ -8,6 +8,42 @@
 
 Repository for the solution to the module's question :coffee:
 
+```
+Notes:
+● It is not allowed to use system () and exec * (), unless there are exceptions in the question.
+● The work is only done in 1 C program file with the format name SinSeiFS_ [Group] .c.
+```
+
+**Built-in Library**
+```
+#define FUSE_USE_VERSION 28
+
+#include <fuse.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <dirent.h>
+#include <errno.h>
+#include <sys/time.h>
+#include <wait.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <ctype.h>
+#include <time.h>
+```
+**Built-in Library**
+```
+static const char *dirPath = "/home/alvancho/Downloads";
+char *key = "SISOP";
+char *atoz = "AtoZ_";
+char *rx = "RX_";
+char *aisa = "A_is_a_";
+int x = 0;
+```
+
 # Question 1
 In a department, there was a new lab admin who had nothing to do, his name was Sin.
 Sin just became an admin exactly 1 month ago. After a month in that lab he finally met
@@ -57,38 +93,74 @@ When accessed via the file system, file will appear as Suatu_File.txt
 ** **
 
 # Question 3
-Because Sin still feels exceptionally empty, he finally adds another feature to their file
-system.
-a. If a directory is created with the prefix ```A_is_a_```, it will become a special
-directory.
-b. If a directory is renamed with the prefix ```A_is_a_```, it will become a special
-directory.
-c. If the encrypted directory is renamed by deleting ```A_is_a_``` at the beginning of
-the folder name, that directory becomes a normal directory.
-d. Special directories are directories that return encryption/encoding to the ```AtoZ_```
-or ```RX_``` directories but their respective rules still run in the directory within them
+Because Sin still feels exceptionally empty, he finally adds another feature to their file system.
+a. If a directory is created with the prefix ```A_is_a_```, it will become a special directory.
+b. If a directory is renamed with the prefix ```A_is_a_```, it will become a special directory.
+c. If the encrypted directory is renamed by deleting ```A_is_a_``` at the beginning of the folder name, that directory becomes a normal directory.
+d. Special directories are directories that return encryption/encoding to the ```AtoZ_``` or ```RX_``` directories but their respective rules still run in the directory within them
 (```AtoZ_``` and ```RX_``` recursive properties still run in subdirectories).
-e. In the special directory, all filenames (excluding extensions) in the fuse will be
-changed to lowercase (insensitive) and will be given a new extension in the form
-of a decimal value from the binary value that comes from the difference in
-character between filenames.
-For example, if in the original directory the filename is ```FiLe_CoNtoH.txt``` then in
-the fuse it will be ```file_contoh.txt.1321```. 1321 comes from binary 10100101001.
+e. In the special directory, all filenames (excluding extensions) in the fuse will be changed to lowercase (insensitive) and will be given a new extension in the form
+of a decimal value from the binary value that comes from the difference in character between filenames.
+For example, if in the original directory the filename is ```FiLe_CoNtoH.txt``` then in the fuse it will be ```file_contoh.txt.1321```. 1321 comes from binary 10100101001.
 
 # Solution 3
-** **
+**a.)**
+```
+static int xmp_rename(const char *from, const char *to)
+{
+	int res;
+	char frompath[1000], topath[1000];
+	
+	...
 
-** **
+	sprintf(frompath, "%s%s", dirPath, from);
+	sprintf(topath, "%s%s", dirPath, to);
 
-** **
+	res = rename(frompath, topath);
+	if (res == -1) return -errno;
 
-** **
+	tulisLog2("RENAME", frompath, topath);
+	
+	...
+	
+	if (strstr(to, aisa) != NULL){
+		encryptBinary(topath);
+		tulisLog2("ENCRYPT3", from, to);
+	}
+	
+	if (strstr(from, aisa) != NULL && strstr(to, aisa) == NULL){
+		decryptBinary(topath);
+		tulisLog2("DECRYPT3", from, to);
+	}
 
+	return 0;
+}
+```
 ** **
+```
 
+```
 ** **
+```
 
+```
 ** **
+```
+
+```
+** **
+```
+
+```
+
+**Problems**
+```
+A bit confused by the meaning of the special directory.
+A little confused when decrypting because you need to take the decimal value that is at the end of the file name.
+Binary uses the array of char data type because of the fear of integer overflow. 
+This causes the conversion of binary to decimal and vice versa a bit of a problem.
+```
+**Screenshots**
 
 # Question 4
 To make it easier to monitor activities on their filesystem, Sin and Sei created a log
@@ -111,3 +183,8 @@ INFO::28052021-10:01:00:RENAME::/test.txt::/rename.txt
 ```
 # Solution 4
 ** **
+
+
+**Problems**
+
+**Screenshots**
