@@ -88,7 +88,7 @@ Note: The file system works normally like any linux file system, mount source (r
 
 For Example:
 
-For or a file named ```kucinglucu123.jpg``` on ```DATA_PENTING``` directory
+For a file named ```kucinglucu123.jpg``` on ```DATA_PENTING``` directory
 ```AtoZ_folder/DATA_PENTING/kucinglucu123.jpg``` → ```AtoZ_folder/WZGZ_KVMGRMT/pfxrmtofxf123.jpg```
 
 
@@ -98,22 +98,32 @@ Based on this explanation. Then we can create some support functions to help us 
 
 **1) ```split_file_id_return```**
 
-This ```split_file_id_return``` function is to return the index file extension to the file that has been split.
-
 <img width="1000" alt="Screen Shot 2021-06-13 at 00 32 37" src="https://user-images.githubusercontent.com/74056954/121784571-dc0dc400-cbde-11eb-8fef-f4d13d20cdc2.png">
+
+This ```split_file_id_return``` function is to return the index file extension to the file that has been split.
 
 **2) ```file_extension_index_return```**
 
-This ```file_extension_index_return``` function is to return the index file extension.
-
 <img width="1000" alt="Screen Shot 2021-06-13 at 00 36 41" src="https://user-images.githubusercontent.com/74056954/121784675-6d7d3600-cbdf-11eb-8736-318412b4122e.png">
 
+This ```file_extension_index_return``` function is to return the index file extension.
 
 **3) ```slash_id_return```**
 
+<img width="1000" alt="Screen Shot 2021-06-13 at 00 21 18" src="https://user-images.githubusercontent.com/74056954/121784339-b3d19580-cbdd-11eb-84ed-8b6b8ba226c4.png">
+
 Last but not least is the ```slash_id_return``` function. The purpose of this function is to check whether the directory prefix contains ```AtoZ_``` or not. Because as we all know, directory names start after a slash. So by creating this function, we can start checking the prefix of the directory.
 
-<img width="1000" alt="Screen Shot 2021-06-13 at 00 21 18" src="https://user-images.githubusercontent.com/74056954/121784339-b3d19580-cbdd-11eb-84ed-8b6b8ba226c4.png">
+To perform the encryption and decryption process using the Atbash Cipher method we also need these 2 functions:
+
+**1) ```encrypt_atbash_cipher_on_atoz```**
+
+<img width="1000" alt="Screen Shot 2021-06-13 at 01 02 07" src="https://user-images.githubusercontent.com/74056954/121785259-fb0e5500-cbe2-11eb-9ff7-1c34b40572b5.png">
+
+**2) ```decrypt_atbash_cipher_on_not_atoz```**
+
+<img width="1000" alt="Screen Shot 2021-06-13 at 01 10 34" src="https://user-images.githubusercontent.com/74056954/121785482-29406480-cbe4-11eb-85d1-4bd5cfce43e0.png">
+
 
 **Screenshots**
 
