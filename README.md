@@ -34,7 +34,7 @@ Notes:
 #include <ctype.h>
 #include <time.h>
 ```
-**Built-in Library**
+**Global Initialization**
 ```
 static const char *dirPath = "/home/alvancho/Downloads";
 char *key = "SISOP";
