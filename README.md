@@ -268,17 +268,98 @@ void encryptBinary(char *fpath)
 }
 ```
 
-** **
+**If ```A_is_a_ is``` detected in the origin path and ```A_is_a_``` is not detected in the destination path, it means that the directory is renamed by removing ```A_is_a_```. Then proceed with changing the file name to the original with the help of the decimal value in the decryptBinary function.**
+```
+int convertDec(char *ext){
+	int dec = 0, pengali = 1;
+	for(int i=strlen(ext)-1; i>=0; i--){
+		dec += (ext[i]-'0')*pengali;
+		pengali *= 10;
+	}
+	return dec;
+}
 ```
 
 ```
-** **
+void dec_to_bin(int dec, char *bin, int len){
+	int idx = 0;
+	while(dec){
+		if(dec & 1) bin[idx] = '1';
+		else bin[idx] = '0';
+		idx++;
+		dec /= 2;
+	}
+	while(idx < len){
+		bin[idx] = '0';
+		idx++;
+	}
+	bin[idx] = '\0';
+	
+	for(int i=0; i<idx/2; i++){
+		char tmp = bin[i];
+		bin[i] = bin[idx-1-i];
+		bin[idx-1-i] = tmp;
+	}
+}
 ```
 
 ```
-** **
+void getDecimal(char *fname, char *bin, char *normalcase){
+	int endid = ext_id(fname);
+	int startid = slash_id(fname, 0);
+	int i;
+	
+	for(i=startid; i<endid; i++){
+		if(bin[i-startid] == '1') normalcase[i-startid] = fname[i] - 32;
+		else normalcase[i-startid] = fname[i];
+	}
+	
+	for(; i<strlen(fname); i++){
+		normalcase[i-startid] = fname[i];
+	}
+	normalcase[i-startid] = '\0';
+}
 ```
 
+```
+void decryptBinary(char *fpath)
+{
+	chdir(fpath);
+	DIR *dp;
+	struct dirent *dir;
+	struct stat lol;
+	dp = opendir(".");
+	if(dp == NULL) return;
+	
+	char dirPath[1000];
+	char filePath[1000];
+	char filePathDecimal[1000];
+	
+	while ((dir = readdir(dp)) != NULL){
+		if (stat(dir->d_name, &lol) < 0);
+		else if (S_ISDIR(lol.st_mode)){
+			if (strcmp(dir->d_name,".") == 0 || strcmp(dir->d_name,"..") == 0) continue;
+			sprintf(dirPath,"%s/%s",fpath, dir->d_name);
+			decryptBinary(dirPath);
+		}
+		else{
+			sprintf(filePath,"%s/%s",fpath, dir->d_name);
+			char fname[1000], bin[1000], normalcase[1000], clearPath[1000];
+			
+			strcpy(fname, dir->d_name);
+			char *ext = strrchr(fname, '.');
+			int dec = convertDec(ext+1);
+			for(int i=0; i<strlen(fname)-strlen(ext); i++) clearPath[i] = fname[i];
+			
+			char *ext2 = strrchr(clearPath, '.');
+			dec_to_bin(dec, bin, strlen(clearPath)-strlen(ext2));
+			getDecimal(clearPath, bin, normalcase);
+			sprintf(filePathDecimal,"%s/%s",fpath,normalcase);
+			rename(filePath, filePathDecimal);
+		}
+	}
+	closedir(dp);
+}
 ```
 
 **Problems**
@@ -290,14 +371,41 @@ This causes the conversion of binary to decimal and vice versa a bit of a proble
 ```
 **Screenshots**
 
+**a.)**
+
+![Screenshot from 2021-06-12 15-32-59](https://user-images.githubusercontent.com/61174498/121778913-5f212100-cbc3-11eb-9e93-640629bdfe30.png)
+
+![Screenshot from 2021-06-12 15-36-18](https://user-images.githubusercontent.com/61174498/121778916-647e6b80-cbc3-11eb-950b-4bf591f3938f.png)
+
+**b.)**
+
+![Screenshot from 2021-06-12 15-31-49](https://user-images.githubusercontent.com/61174498/121778878-38fb8100-cbc3-11eb-92f1-980a037ed901.png)
+
+![Screenshot from 2021-06-12 15-31-40](https://user-images.githubusercontent.com/61174498/121778884-3dc03500-cbc3-11eb-81e9-56b794113878.png)
+
+**c.)**
+
+![Screenshot from 2021-06-12 15-32-01](https://user-images.githubusercontent.com/61174498/121778889-44e74300-cbc3-11eb-95d3-eb2ad33a595c.png)
+
+**d.)**
+
+![Screenshot from 2021-06-12 15-48-41](https://user-images.githubusercontent.com/61174498/121778928-72cc8780-cbc3-11eb-91ab-82a16473fb0b.png)
+
+![Screenshot from 2021-06-12 15-48-46](https://user-images.githubusercontent.com/61174498/121778940-82e46700-cbc3-11eb-8f17-f26920587844.png)
+
+![Screenshot from 2021-06-12 15-49-12](https://user-images.githubusercontent.com/61174498/121778961-97c0fa80-cbc3-11eb-81fd-7e9f20b8e2e3.png)
+
+![Screenshot from 2021-06-12 15-49-17](https://user-images.githubusercontent.com/61174498/121778964-9b548180-cbc3-11eb-8e91-d55ed68a688c.png)
+
+**e.)**
+
+![Screenshot from 2021-06-12 15-49-07](https://user-images.githubusercontent.com/61174498/121778949-8c6dcf00-cbc3-11eb-862d-567298de399a.png)
+
 # Question 4
-To make it easier to monitor activities on their filesystem, Sin and Sei created a log
-system with the following specifications.
-a. The system log that will be created is named ```SinSeiFS.log``` in the user's home
-directory (/home/[user]/SinSeiFS.log). This system log maintains a list of system
-call commands that have been executed on the filesystem..
-b. Because Sin and Sei like tidiness, the logs that are made will be divided into two
-levels,INFO and WARNING.
+To make it easier to monitor activities on their filesystem, Sin and Sei created a log system with the following specifications.
+a. The system log that will be created is named ```SinSeiFS.log``` in the user's home directory (/home/[user]/SinSeiFS.log). 
+This system log maintains a list of system call commands that have been executed on the filesystem..
+b. Because Sin and Sei like tidiness, the logs that are made will be divided into two levels,INFO and WARNING.
 c. For the WARNING level log, it is used to log the rmdir and unlink syscalls.
 d. The rest will be recorded at the INFO level.
 e. The format for logging is:
@@ -310,9 +418,73 @@ INFO::28052021-10:00:00:CREATE::/test.txt
 INFO::28052021-10:01:00:RENAME::/test.txt::/rename.txt
 ```
 # Solution 4
-** **
+**For this matter we are asked to create a system log which aims to make it easier to monitor activities on the file system. Here we create two functions in making this system log, namely the ```tulisLog``` and ```tulisLog2``` functions, the difference is in the DESC (additional information and parameters) that need to be included in the format for logging. In writing the system log according to the existing format we need to find the current time to be included in the system log later. In the ```tulisLog``` function we also enter the parameter ```char *nama``` which is the System Call and char ```*fpath``` is a description of the existing file.**
+```
+void tulisLog(char *nama, char *fpath)
+{
+	time_t rawtime;
+	struct tm *timeinfo;
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+```
 
+**Next we initialize an array of char or string ```haha``` to later save the system call commands that have been executed on the filesystem and record them in the ```SinSeiFS.log``` file. Then we need to open the ```SinSeiFS.log``` file in the user's home directory with mode ```a``` (append) so that a new log can be written later and if the file does not exist, a new file will be created.**
+```
+	char haha[1000];
+	
+	FILE *file;
+	file = fopen("/home/aldo/SinSeiFS.log", "a");
+```
+
+**Next we can check the syscall in the parameter. If the syscall is ```RMDIR``` or ```UNLINK``` then the log level will be logged ```WARNING```. But if not, then the log level will be recorded ```INFO```. And will also note the current time along with other information.**
+```
+	if (strcmp(nama, "RMDIR") == 0 || strcmp(nama, "UNLINK") == 0)
+		sprintf(haha, "WARNING::%.2d%.2d%d-%.2d:%.2d:%.2d::%s::%s\n", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, nama, fpath);
+	else
+		sprintf(haha, "INFO::%.2d%.2d%d-%.2d:%.2d:%.2d::%s::%s\n", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, nama, fpath);
+```
+
+**The last step is to write down the existing logs into the ```SinSeiFS.log``` file and close the file.**
+```
+	fputs(haha, file);
+	fclose(file);
+	return;
+}
+```
+
+**For the second function, ```tulisLog2``` is actually more or less the same as the ```tulisLog``` function described earlier, but there are differences in the parameters given and in the recording. For the parameters there is a ```char *name``` which is a syscall, ```const char *from``` is a file description before the system call command is executed by the file system and a ```const char *to``` file description after the system call command is executed by the file system. Then the recording is more or less the same as the previous one but added information according to the parameters given.**
+```
+void tulisLog2(char *nama, const char *from, const char *to)
+{
+	time_t rawtime;
+	struct tm *timeinfo;
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+
+	char haha[1000];
+
+	FILE *file;
+	file = fopen("/home/aldo/SinSeiFS.log", "a");
+
+	if (strcmp(nama, "RMDIR") == 0 || strcmp(nama, "UNLINK") == 0)
+		sprintf(haha, "WARNING::%.2d%.2d%d-%.2d:%.2d:%.2d::%s::%s::%s\n", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, nama, from, to);
+	else
+		sprintf(haha, "INFO::%.2d%.2d%d-%.2d:%.2d:%.2d::%s::%s::%s\n", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, nama, from, to);
+
+	fputs(haha, file);
+	fclose(file);
+	return;
+}
+```
 
 **Problems**
-
+```
+There was a problem when recording the file because it was different from the given format.
+There is difficulty in taking real time and keeping track of it.
+Was confused to record the System Call because some have 1 or 2 arguments. Finally we split it into 2 functions for logging.
+```
 **Screenshots**
+**a.), b.), c.), d.), e.)**
+
+![Screenshot from 2021-06-12 15-41-45](https://user-images.githubusercontent.com/61174498/121778987-b4f5c900-cbc3-11eb-98ba-de827f57a30b.png)
+
