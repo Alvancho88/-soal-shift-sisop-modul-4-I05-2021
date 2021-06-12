@@ -433,7 +433,7 @@ void tulisLog(char *nama, char *fpath)
 	char haha[1000];
 	
 	FILE *file;
-	file = fopen("/home/aldo/SinSeiFS.log", "a");
+	file = fopen("/home/alvancho/SinSeiFS.log", "a");
 ```
 
 **Next we can check the syscall in the parameter. If the syscall is ```RMDIR``` or ```UNLINK``` then the log level will be logged ```WARNING```. But if not, then the log level will be recorded ```INFO```. And will also note the current time along with other information.**
@@ -464,7 +464,7 @@ void tulisLog2(char *nama, const char *from, const char *to)
 	char haha[1000];
 
 	FILE *file;
-	file = fopen("/home/aldo/SinSeiFS.log", "a");
+	file = fopen("/home/alvancho/SinSeiFS.log", "a");
 
 	if (strcmp(nama, "RMDIR") == 0 || strcmp(nama, "UNLINK") == 0)
 		sprintf(haha, "WARNING::%.2d%.2d%d-%.2d:%.2d:%.2d::%s::%s::%s\n", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, nama, from, to);
