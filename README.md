@@ -124,6 +124,33 @@ When accessed via the file system, file will appear as Suatu_File.txt
 ** **
 
 **Screenshots**
+**a.)**
+
+![Screenshot from 2021-06-12 15-02-54](https://user-images.githubusercontent.com/61174498/121777923-ab1d9700-cbbe-11eb-8b5b-575562c607e4.png)
+
+![Screenshot from 2021-06-12 15-03-03](https://user-images.githubusercontent.com/61174498/121777941-bd97d080-cbbe-11eb-999f-088b10197bcc.png)
+
+**b.)**
+
+![Screenshot from 2021-06-12 15-06-44](https://user-images.githubusercontent.com/61174498/121777944-c38db180-cbbe-11eb-8d23-37693f43483c.png)
+
+![Screenshot from 2021-06-12 15-07-18](https://user-images.githubusercontent.com/61174498/121777948-d1433700-cbbe-11eb-889d-d9b1cd85f638.png)
+
+**c.)**
+
+![Screenshot from 2021-06-12 15-08-13](https://user-images.githubusercontent.com/61174498/121777973-f041c900-cbbe-11eb-87fd-0a67ffea7e24.png)
+
+![Screenshot from 2021-06-12 15-08-18](https://user-images.githubusercontent.com/61174498/121777978-f5067d00-cbbe-11eb-8a8b-044a7b13e39e.png)
+
+![Screenshot from 2021-06-12 15-08-42](https://user-images.githubusercontent.com/61174498/121777982-f89a0400-cbbe-11eb-9dcb-d73abad988e5.png)
+
+**d.)**
+
+![Screenshot from 2021-06-12 15-11-44](https://user-images.githubusercontent.com/61174498/121777987-fdf74e80-cbbe-11eb-9230-f7508e0a339f.png)
+
+**e.)**
+
+![Screenshot from 2021-06-12 15-07-18](https://user-images.githubusercontent.com/61174498/121777951-d7391800-cbbe-11eb-95c7-430786e329d8.png)
 
 # Question 3
 Because Sin still feels exceptionally empty, he finally adds another feature to their file system.
