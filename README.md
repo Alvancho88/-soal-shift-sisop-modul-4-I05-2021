@@ -211,6 +211,240 @@ When accessed via the file system, file will appear as Suatu_File.txt
 
 ![Screenshot from 2021-06-12 15-07-18](https://user-images.githubusercontent.com/61174498/121777951-d7391800-cbbe-11eb-95c7-430786e329d8.png)
 
+# Question 2
+Other than that, Sei proposed to create additional encryption methods to increase the security of their computer data . The following is the additional encryption method designed by Sei.
+a. If a directory is created starting with “RX_[Nama]”, then that directory and its contents will be encoded with a rename according to problem 1 with an additional ROT13 algorithm (Atbash + ROT13).
+b. If a directory is renamed starting with “RX_[Nama]”, then that directory and its contents will be encoded with a rename according to problem 1 with an additional Vigenere Cipher algorithm with “SISOP” as it's key (Case-sensitive, Atbash + Vigenere).
+c. If an encoded directory is renamed (Removing the “RX_”), then that folder will become unencoded and it's directory contents will be decoded based on it's real name.
+d. Every encoded directory created (mkdir or rename) will be noted to a log file with it's methods (whether it's mkdir or rename).
+e. For this encryption method, files in the original directory will be split into smaller, 1024 byte files. While if accessed via the file system designed by Sin and Sei, files will become normal. Example, Suatu_File.txt sized 3 kiloBytes in its original directory will become 3 smaller files::
+Suatu_File.txt.0000
+Suatu_File.txt.0001
+Suatu_File.txt.0002
+
+#Solution 2
+**The ```RENAME``` utility checks whether the directory is renamed by adding ```RX_``` or removing ```RX_``` with the strstr() function.**
+```
+static int xmp_rename(const char *from, const char *to)
+{
+	int res;
+	char frompath[1000], topath[1000];
+	
+	char *a = strstr(to, atoz);
+	if (a != NULL) decrypt_atbash_cipher_on_not_atoz(a);
+	
+	char *b = strstr(from, rx);
+	if (b != NULL){
+		//struct stat stats;
+		//stat(from, &stats);
+		//if(ctime(&stats.st_ctime) == ctime(&stats.st_mtime))
+		decrypt_rot13_on_not_rx(b);
+		decrypt_atbash_cipher_on_not_atoz(b);
+		//else
+		//decrypt_vigenere_on_not_rx_rename(b);
+	}
+	
+	char *c = strstr(to, rx);
+	if (c != NULL){
+		//struct stat stats;
+		//stat(from, &stats);
+		//if(ctime(&stats.st_ctime) == ctime(&stats.st_mtime))
+		decrypt_rot13_on_not_rx(c);
+		decrypt_atbash_cipher_on_not_atoz(c);
+		//else
+		//decrypt_vigenere_on_not_rx_rename(c);
+	}
+
+	sprintf(frompath, "%s%s", directoryPath, from);
+	sprintf(topath, "%s%s", directoryPath, to);
+
+	res = rename(frompath, topath);
+	if (res == -1) return -errno;
+
+	writeLog2("RENAME", frompath, topath);
+	
+	if (c != NULL){
+		encryption_utility_function(topath);
+		writeLog2("ENCRYPT2", from, to);
+	}
+
+	if (b != NULL && c == NULL){
+		decryption_utility_function(topath);
+		writeLog2("DECRYPT2", from, to);
+	}
+	
+	if (strstr(to, aisa) != NULL){
+		encrypt_binary_from_difference(topath);
+		writeLog2("ENCRYPT3", from, to);
+	}
+	
+	if (strstr(from, aisa) != NULL && strstr(to, aisa) == NULL){
+		decrypt_binary_to_normal_from_difference(topath);
+		writeLog2("DECRYPT3", from, to);
+	}
+
+	return 0;
+}
+```
+
+**If ```RX_``` is detected in the destination path, it means the directory is renamed by adding ```RX_``` and followed by cracking the file in the encryption function2.**
+```
+void encryption_utility_function(char *fpath)
+{
+	chdir(fpath);
+	DIR *dp;
+	struct dirent *dir;
+	
+	dp = opendir(".");
+	if(dp == NULL) return;
+	struct stat lol;
+	char directoryPath[1000];
+	char filePath[1000];
+	
+    while ((dir = readdir(dp)) != NULL){
+		printf("dirname %s\n", dir->d_name);
+		printf("%s/%s\n", fpath, dir->d_name);
+		if (stat(dir->d_name, &lol) < 0);
+		else if (S_ISDIR(lol.st_mode)){
+			if (strcmp(dir->d_name,".") == 0 || strcmp(dir->d_name,"..") == 0){
+				continue;				
+			}
+			sprintf(directoryPath,"%s/%s",fpath, dir->d_name);
+			encryption_utility_function(directoryPath);
+			printf("directoryPath %s\n", directoryPath);
+		}
+		else{
+			sprintf(filePath,"%s/%s",fpath,dir->d_name);
+			FILE *input = fopen(filePath, "r");
+			if (input == NULL){
+				return;				
+			}
+			int bytes_read, count = 0;
+			void *buffer = malloc(1024);
+			while((bytes_read = fread(buffer, 1, 1024, input)) > 0){
+				char newFilePath[1000];
+				sprintf(newFilePath, "%s.%04d", filePath, count);
+				count++;
+				FILE *output = fopen(newFilePath, "w+");
+				if(output == NULL) return;
+				fwrite(buffer, 1, bytes_read, output);
+				fclose(output);
+				memset(buffer, 0, 1024);
+			}
+			fclose(input);
+			printf("filepath %s\n", filePath);
+			remove(filePath);
+		}
+	}
+    closedir(dp);
+}
+```
+**If ```RX_``` is detected in the origin path and no ```RX_``` is detected in the destination path, it means that the directory is renamed by removing ```RX_``` and continued by merging files in the decryption function2.**
+```
+void decryption_utility_function(char *dir)
+{
+	chdir(dir);
+	DIR *dp;
+	struct dirent *de;
+	struct stat lol;
+	dp = opendir(".");
+	if (dp == NULL) return;
+	
+	char directoryPath[1000];
+	char filePath[1000];
+	
+	while ((de = readdir(dp)) != NULL){
+		if (stat(de->d_name, &lol) < 0);
+		else if (S_ISDIR(lol.st_mode)){
+			if (strcmp(de->d_name, ".") == 0 || strcmp(de->d_name, "..") == 0){
+				continue;				
+			}
+			sprintf(directoryPath, "%s/%s", dir, de->d_name);
+			decryption_utility_function(directoryPath);
+		}
+		else{
+			sprintf(filePath, "%s/%s", dir, de->d_name);
+			filePath[strlen(filePath) - 5] = '\0';
+			FILE *check = fopen(filePath, "r");
+			if (check != NULL){
+				return;				
+			}
+			FILE *file = fopen(filePath, "w");
+			int count = 0;
+			char topath[1000];
+			sprintf(topath, "%s.%04d", filePath, count);
+			void *buffer = malloc(1024);
+			while (1){
+				FILE *op = fopen(topath, "rb");
+				if (op == NULL){
+					break;	
+				}
+				size_t readSize = fread(buffer, 1, 1024, op);
+				fwrite(buffer, 1, readSize, file);
+				fclose(op);
+				remove(topath);
+				count++;
+				sprintf(topath, "%s.%04d", filePath, count);
+			}
+			free(buffer);
+			fclose(file);
+		}
+	}
+	closedir(dp);
+}
+```
+**To perform encryption and decryption using the ROT13 cipher, a separate function will be created.**
+```
+void encrypt_rot13_on_rx(char *path)
+{
+	if (!strcmp(path, ".") || !strcmp(path, "..")){
+		return;		
+	}
+	
+	printf("encrypt path ROT13: %s\n", path);
+	
+	int edge_of_id = split_file_id_return(path);
+	int starting_point_of_id = slash_id_return(path, 0);
+	
+	for (int i = starting_point_of_id; i < edge_of_id; i++){
+		if (path[i] != '/' && isalpha(path[i])){
+			char temporary = path[i];
+			if(isupper(path[i])) temporary -= 'A';
+			else temporary -= 'a';
+			temporary = (temporary + 13) % 26; //ROT13 cipher
+			if(isupper(path[i])) temporary += 'A';
+			else temporary += 'a';
+			path[i] = temporary;
+		}
+	}
+}
+
+void decrypt_rot13_on_not_rx(char *path)
+{
+	if (!strcmp(path, ".") || !strcmp(path, "..")){
+		return;		
+	}
+	
+	printf("decrypt path ROT13: %s\n", path);
+	
+	int edge_of_id = split_file_id_return(path);
+	int starting_point_of_id = slash_id_return(path, edge_of_id);
+	
+	for (int i = starting_point_of_id; i < edge_of_id; i++){
+		if (path[i] != '/' && isalpha(path[i])){
+			char temporary = path[i];
+			if(isupper(path[i])) temporary -= 'A';
+			else temporary -= 'a';
+			temporary = (temporary + 13) % 26; //ROT13 cipher
+			if(isupper(path[i])) temporary += 'A';
+			else temporary += 'a';
+			path[i] = temporary;
+		}
+	}
+}
+```
+The decryption function calls are performed on each utility function getattr, mkdir, rename, rmdir, create, and other functions that we think are essential in the FUSE synchronization process and mount folders. The decryption and encryption functions are carried out in the readdir utility function because FUSE will decrypt the mount folder and then encrypt it in FUSE during readdir. The call is done by checking whether the string RX_ is in the string path in each utility function by using the strstr() function. If yes, then the encryption and decryption functions will be called for that string with RX_ as the starting point of the passed string. Logging will be explained in question number 4.
+
 # Question 3
 Because Sin still feels exceptionally empty, he finally adds another feature to their file system.
 a. If a directory is created with the prefix ```A_is_a_```, it will become a special directory.
