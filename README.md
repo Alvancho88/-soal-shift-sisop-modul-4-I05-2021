@@ -231,25 +231,25 @@ static int xmp_rename(const char *from, const char *to)
 	char frompath[1000], topath[1000];
 	
 	...
-
-	sprintf(frompath, "%s%s", dirPath, from);
-	sprintf(topath, "%s%s", dirPath, to);
+	
+	sprintf(frompath, "%s%s", directoryPath, from);
+	sprintf(topath, "%s%s", directoryPath, to);
 
 	res = rename(frompath, topath);
 	if (res == -1) return -errno;
 
-	tulisLog2("RENAME", frompath, topath);
+	writeLog2("RENAME", frompath, topath);
 	
 	...
 	
 	if (strstr(to, aisa) != NULL){
-		encryptBinary(topath);
-		tulisLog2("ENCRYPT3", from, to);
+		encrypt_binary_from_difference(topath);
+		writeLog2("ENCRYPT3", from, to);
 	}
 	
 	if (strstr(from, aisa) != NULL && strstr(to, aisa) == NULL){
-		decryptBinary(topath);
-		tulisLog2("DECRYPT3", from, to);
+		decrypt_binary_to_normal_from_difference(topath);
+		writeLog2("DECRYPT3", from, to);
 	}
 
 	return 0;
@@ -258,12 +258,12 @@ static int xmp_rename(const char *from, const char *to)
 **If A_is_a_ is detected in the destination path, it means the directory was renamed by adding A_is_a_. Then proceed with changing the file name to lowercase and adding the decimal value as a new extension to the encryptBinary function.**
 
 ```
-void getBinary(char *fname, char *bin, char *lowercase){
-	int endid = ext_id(fname);
-	int startid = slash_id(fname, 0);
+void get_binary_from_difference(char *fname, char *bin, char *lowercase){
+	int edge_of_id = file_extension_index_return(fname);
+	int starting_point_of_id = slash_id_return(fname, 0);
 	int i;
 	
-	for(i=startid; i<endid; i++){
+	for(i=starting_point_of_id; i<edge_of_id; i++){
 		if(isupper(fname[i])){
 			bin[i] = '1';
 			lowercase[i] = fname[i] + 32;
@@ -273,7 +273,7 @@ void getBinary(char *fname, char *bin, char *lowercase){
 			lowercase[i] = fname[i];
 		}
 	}
-	bin[endid] = '\0';
+	bin[edge_of_id] = '\0';
 	
 	for(; i<strlen(fname); i++){
 		lowercase[i] = fname[i];
@@ -283,18 +283,18 @@ void getBinary(char *fname, char *bin, char *lowercase){
 ```
 
 ```
-int bin_to_dec(char *bin){
-	int tmp = 1, res = 0;
+int binary_to_decimal_converter(char *bin){
+	int temporary = 1, res = 0;
 	for(int i=strlen(bin)-1; i>=0; i--){
-		if(bin[i] == '1') res += tmp;
-		tmp *= 2;
+		if(bin[i] == '1') res += temporary;
+		temporary *= 2;
 	}
 	return res;
 }
 ```
 
 ```
-void encryptBinary(char *fpath)
+void encrypt_binary_from_difference(char *fpath)
 {
 	chdir(fpath);
 	DIR *dp;
@@ -303,48 +303,54 @@ void encryptBinary(char *fpath)
 	dp = opendir(".");
 	if(dp == NULL) return;
 	
-	char dirPath[1000];
+	char directoryPath[1000];
 	char filePath[1000];
 	char filePathBinary[1000];
 	
-	while ((dir = readdir(dp)) != NULL){
+    while ((dir = readdir(dp)) != NULL){
 		if (stat(dir->d_name, &lol) < 0);
 		else if (S_ISDIR(lol.st_mode)){
-			if (strcmp(dir->d_name,".") == 0 || strcmp(dir->d_name,"..") == 0) continue;
-			sprintf(dirPath,"%s/%s",fpath, dir->d_name);
-			encryptBinary(dirPath);
+			if (strcmp(dir->d_name,".") == 0 || strcmp(dir->d_name,"..") == 0){
+				continue;	
+			}
+			sprintf(directoryPath,"%s/%s",fpath, dir->d_name);
+			encrypt_binary_from_difference(directoryPath);
 		}
 		else{
 			sprintf(filePath,"%s/%s",fpath, dir->d_name);
 			char bin[1000], lowercase[1000];
-			getBinary(dir->d_name, bin, lowercase);
-			int dec = bin_to_dec(bin);
+			get_binary_from_difference(dir->d_name, bin, lowercase);
+			int dec = binary_to_decimal_converter(bin);
 			sprintf(filePathBinary,"%s/%s.%d",fpath,lowercase,dec);
 			rename(filePath, filePathBinary);
 		}
 	}
-	closedir(dp);
+    closedir(dp);
 }
 ```
 
 **If ```A_is_a_ is``` detected in the origin path and ```A_is_a_``` is not detected in the destination path, it means that the directory is renamed by removing ```A_is_a_```. Then proceed with changing the file name to the original with the help of the decimal value in the decryptBinary function.**
 ```
-int convertDec(char *ext){
-	int dec = 0, pengali = 1;
+int convert_decimal(char *ext){
+	int dec = 0, multiplier = 1;
 	for(int i=strlen(ext)-1; i>=0; i--){
-		dec += (ext[i]-'0')*pengali;
-		pengali *= 10;
+		dec += (ext[i]-'0')*multiplier;
+		multiplier *= 10;
 	}
 	return dec;
 }
 ```
 
 ```
-void dec_to_bin(int dec, char *bin, int len){
+void decimal_to_binary_converter(int dec, char *bin, int len){
 	int idx = 0;
 	while(dec){
-		if(dec & 1) bin[idx] = '1';
-		else bin[idx] = '0';
+		if(dec & 1){
+			bin[idx] = '1';	
+		}
+		else{
+			bin[idx] = '0';
+		}
 		idx++;
 		dec /= 2;
 	}
@@ -355,51 +361,55 @@ void dec_to_bin(int dec, char *bin, int len){
 	bin[idx] = '\0';
 	
 	for(int i=0; i<idx/2; i++){
-		char tmp = bin[i];
+		char temporary = bin[i];
 		bin[i] = bin[idx-1-i];
-		bin[idx-1-i] = tmp;
+		bin[idx-1-i] = temporary;
 	}
 }
 ```
 
 ```
-void getDecimal(char *fname, char *bin, char *normalcase){
-	int endid = ext_id(fname);
-	int startid = slash_id(fname, 0);
+void get_decimal(char *fname, char *bin, char *normalcase){
+	int edge_of_id = file_extension_index_return(fname);
+	int starting_point_of_id = slash_id_return(fname, 0);
 	int i;
 	
-	for(i=startid; i<endid; i++){
-		if(bin[i-startid] == '1') normalcase[i-startid] = fname[i] - 32;
-		else normalcase[i-startid] = fname[i];
+	for(i=starting_point_of_id; i<edge_of_id; i++){
+		if(bin[i-starting_point_of_id] == '1') normalcase[i-starting_point_of_id] = fname[i] - 32;
+		else normalcase[i-starting_point_of_id] = fname[i];
 	}
 	
 	for(; i<strlen(fname); i++){
-		normalcase[i-startid] = fname[i];
+		normalcase[i-starting_point_of_id] = fname[i];
 	}
-	normalcase[i-startid] = '\0';
+	normalcase[i-starting_point_of_id] = '\0';
 }
 ```
 
 ```
-void decryptBinary(char *fpath)
+void decrypt_binary_to_normal_from_difference(char *fpath)
 {
 	chdir(fpath);
 	DIR *dp;
 	struct dirent *dir;
 	struct stat lol;
 	dp = opendir(".");
-	if(dp == NULL) return;
+	if(dp == NULL){
+		return;		
+	}
 	
-	char dirPath[1000];
+	char directoryPath[1000];
 	char filePath[1000];
 	char filePathDecimal[1000];
 	
-	while ((dir = readdir(dp)) != NULL){
+    while ((dir = readdir(dp)) != NULL){
 		if (stat(dir->d_name, &lol) < 0);
 		else if (S_ISDIR(lol.st_mode)){
-			if (strcmp(dir->d_name,".") == 0 || strcmp(dir->d_name,"..") == 0) continue;
-			sprintf(dirPath,"%s/%s",fpath, dir->d_name);
-			decryptBinary(dirPath);
+			if (strcmp(dir->d_name,".") == 0 || strcmp(dir->d_name,"..") == 0){
+				continue;	
+			}
+			sprintf(directoryPath,"%s/%s",fpath, dir->d_name);
+			decrypt_binary_to_normal_from_difference(directoryPath);
 		}
 		else{
 			sprintf(filePath,"%s/%s",fpath, dir->d_name);
@@ -407,17 +417,19 @@ void decryptBinary(char *fpath)
 			
 			strcpy(fname, dir->d_name);
 			char *ext = strrchr(fname, '.');
-			int dec = convertDec(ext+1);
-			for(int i=0; i<strlen(fname)-strlen(ext); i++) clearPath[i] = fname[i];
+			int dec = convert_decimal(ext+1);
+			for(int i=0; i<strlen(fname)-strlen(ext); i++){
+				clearPath[i] = fname[i];	
+			}
 			
 			char *ext2 = strrchr(clearPath, '.');
-			dec_to_bin(dec, bin, strlen(clearPath)-strlen(ext2));
-			getDecimal(clearPath, bin, normalcase);
+			decimal_to_binary_converter(dec, bin, strlen(clearPath)-strlen(ext2));
+			get_decimal(clearPath, bin, normalcase);
 			sprintf(filePathDecimal,"%s/%s",fpath,normalcase);
 			rename(filePath, filePathDecimal);
 		}
 	}
-	closedir(dp);
+    closedir(dp);
 }
 ```
 
@@ -477,19 +489,19 @@ INFO::28052021-10:00:00:CREATE::/test.txt
 INFO::28052021-10:01:00:RENAME::/test.txt::/rename.txt
 ```
 # Solution 4
-**For this matter we are asked to create a system log which aims to make it easier to monitor activities on the file system. Here we create two functions in making this system log, namely the ```tulisLog``` and ```tulisLog2``` functions, the difference is in the DESC (additional information and parameters) that need to be included in the format for logging. In writing the system log according to the existing format we need to find the current time to be included in the system log later. In the ```tulisLog``` function we also enter the parameter ```char *nama``` which is the System Call and char ```*fpath``` is a description of the existing file.**
+**For this matter we are asked to create a system log which aims to make it easier to monitor activities on the file system. Here we create two functions in making this system log, namely the ```writeLog``` and ```writeLog2``` functions, the difference is in the DESC (additional information and parameters) that need to be included in the format for logging. In writing the system log according to the existing format we need to find the current time to be included in the system log later. In the ```writeLog``` function we also enter the parameter ```char *name``` which is the System Call and char ```*fpath``` is a description of the existing file.**
 ```
-void tulisLog(char *nama, char *fpath)
+void writeLog(char *name, char *fpath)
 {
-	time_t rawtime;
+	time_t originaltime;
 	struct tm *timeinfo;
-	time(&rawtime);
-	timeinfo = localtime(&rawtime);
+	time(&originaltime);
+	timeinfo = localtime(&originaltime);
 ```
 
-**Next we initialize an array of char or string ```haha``` to later save the system call commands that have been executed on the filesystem and record them in the ```SinSeiFS.log``` file. Then we need to open the ```SinSeiFS.log``` file in the user's home directory with mode ```a``` (append) so that a new log can be written later and if the file does not exist, a new file will be created.**
+**Next we initialize an array of char or string ```systemCallKeep``` to later save the system call commands that have been executed on the filesystem and record them in the ```SinSeiFS.log``` file. Then we need to open the ```SinSeiFS.log``` file in the user's home directory with mode ```a``` (append) so that a new log can be written later and if the file does not exist, a new file will be created.**
 ```
-	char haha[1000];
+	char systemCallKeep[1000];
 	
 	FILE *file;
 	file = fopen("/home/alvancho/SinSeiFS.log", "a");
@@ -497,40 +509,44 @@ void tulisLog(char *nama, char *fpath)
 
 **Next we can check the syscall in the parameter. If the syscall is ```RMDIR``` or ```UNLINK``` then the log level will be logged ```WARNING```. But if not, then the log level will be recorded ```INFO```. And will also note the current time along with other information.**
 ```
-	if (strcmp(nama, "RMDIR") == 0 || strcmp(nama, "UNLINK") == 0)
-		sprintf(haha, "WARNING::%.2d%.2d%d-%.2d:%.2d:%.2d::%s::%s\n", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, nama, fpath);
-	else
-		sprintf(haha, "INFO::%.2d%.2d%d-%.2d:%.2d:%.2d::%s::%s\n", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, nama, fpath);
+	if (strcmp(name, "RMDIR") == 0 || strcmp(name, "UNLINK") == 0){
+		sprintf(systemCallKeep, "WARNING::%.2d%.2d%d-%.2d:%.2d:%.2d::%s::%s\n", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, name, fpath);		
+	}
+	else{
+		sprintf(systemCallKeep, "INFO::%.2d%.2d%d-%.2d:%.2d:%.2d::%s::%s\n", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, name, fpath);		
+	}
 ```
 
 **The last step is to write down the existing logs into the ```SinSeiFS.log``` file and close the file.**
 ```
-	fputs(haha, file);
+	fputs(systemCallKeep, file);
 	fclose(file);
 	return;
 }
 ```
 
-**For the second function, ```tulisLog2``` is actually more or less the same as the ```tulisLog``` function described earlier, but there are differences in the parameters given and in the recording. For the parameters there is a ```char *name``` which is a syscall, ```const char *from``` is a file description before the system call command is executed by the file system and a ```const char *to``` file description after the system call command is executed by the file system. Then the recording is more or less the same as the previous one but added information according to the parameters given.**
+**For the second function, ```writeLog2``` is actually more or less the same as the ```writeLog``` function described earlier, but there are differences in the parameters given and in the recording. For the parameters there is a ```char *name``` which is a syscall, ```const char *from``` is a file description before the system call command is executed by the file system and a ```const char *to``` file description after the system call command is executed by the file system. Then the recording is more or less the same as the previous one but added information according to the parameters given.**
 ```
-void tulisLog2(char *nama, const char *from, const char *to)
+void writeLog2(char *name, const char *from, const char *to)
 {
-	time_t rawtime;
+	time_t originaltime;
 	struct tm *timeinfo;
-	time(&rawtime);
-	timeinfo = localtime(&rawtime);
+	time(&originaltime);
+	timeinfo = localtime(&originaltime);
 
-	char haha[1000];
+	char systemCallKeep[1000];
 
 	FILE *file;
 	file = fopen("/home/alvancho/SinSeiFS.log", "a");
 
-	if (strcmp(nama, "RMDIR") == 0 || strcmp(nama, "UNLINK") == 0)
-		sprintf(haha, "WARNING::%.2d%.2d%d-%.2d:%.2d:%.2d::%s::%s::%s\n", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, nama, from, to);
-	else
-		sprintf(haha, "INFO::%.2d%.2d%d-%.2d:%.2d:%.2d::%s::%s::%s\n", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, nama, from, to);
+	if (strcmp(name, "RMDIR") == 0 || strcmp(name, "UNLINK") == 0){
+		sprintf(systemCallKeep, "WARNING::%.2d%.2d%d-%.2d:%.2d:%.2d::%s::%s::%s\n", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, name, from, to);		
+	}
+	else{
+		sprintf(systemCallKeep, "INFO::%.2d%.2d%d-%.2d:%.2d:%.2d::%s::%s::%s\n", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, name, from, to);		
+	}
 
-	fputs(haha, file);
+	fputs(systemCallKeep, file);
 	fclose(file);
 	return;
 }
