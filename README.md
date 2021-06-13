@@ -211,17 +211,6 @@ When accessed via the file system, file will appear as Suatu_File.txt
 
 ![Screenshot from 2021-06-12 15-07-18](https://user-images.githubusercontent.com/61174498/121777951-d7391800-cbbe-11eb-95c7-430786e329d8.png)
 
-# Question 2
-Other than that, Sei proposed to create additional encryption methods to increase the security of their computer data . The following is the additional encryption method designed by Sei.
-a. If a directory is created starting with “RX_[Nama]”, then that directory and its contents will be encoded with a rename according to problem 1 with an additional ROT13 algorithm (Atbash + ROT13).
-b. If a directory is renamed starting with “RX_[Nama]”, then that directory and its contents will be encoded with a rename according to problem 1 with an additional Vigenere Cipher algorithm with “SISOP” as it's key (Case-sensitive, Atbash + Vigenere).
-c. If an encoded directory is renamed (Removing the “RX_”), then that folder will become unencoded and it's directory contents will be decoded based on it's real name.
-d. Every encoded directory created (mkdir or rename) will be noted to a log file with it's methods (whether it's mkdir or rename).
-e. For this encryption method, files in the original directory will be split into smaller, 1024 byte files. While if accessed via the file system designed by Sin and Sei, files will become normal. Example, Suatu_File.txt sized 3 kiloBytes in its original directory will become 3 smaller files::
-Suatu_File.txt.0000
-Suatu_File.txt.0001
-Suatu_File.txt.0002
-
 #Solution 2
 **The ```RENAME``` utility checks whether the directory is renamed by adding ```RX_``` or removing ```RX_``` with the strstr() function.**
 ```
